@@ -1,8 +1,6 @@
 import com.soywiz.klock.DateFormat
 import com.soywiz.klock.DateTime
 import com.soywiz.korev.Key
-import com.soywiz.korev.KeyEvent
-import com.soywiz.korev.addEventListener
 import com.soywiz.korev.keys
 import com.soywiz.korge.Korge
 import com.soywiz.korge.scene.debugBmpFont
@@ -15,6 +13,11 @@ import com.soywiz.korge.view.text
 import com.soywiz.korim.color.Colors
 import com.soywiz.korim.format.readBitmap
 import com.soywiz.korio.file.std.resourcesVfs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"]) {
   var line = 0
@@ -94,9 +97,10 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
   }
 
   image.addUpdater {
-    // TODO: normalize velocity
-    this.x += dx
-    this.y += dy
+    val magnitude = sqrt(dx.toDouble().pow(2) + dy.toDouble().pow(2))
+    val angle = atan2(dy.toDouble(), dx.toDouble())
+    this.x += magnitude * cos(angle)
+    this.y += magnitude * sin(angle)
     positionText.text = "x = $x, y = $y"
     velocityText.text = "dx = $dx, dy = $dy"
   }
