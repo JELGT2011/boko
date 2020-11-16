@@ -21,14 +21,13 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-typealias IntOrFloat = Float
 
 suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"]) {
   var line = 0
   fun textLine(text: String) = text(text, textSize = 16.0, font = debugBmpFont).position(2, line++ * 20 + 5)
   fun nowTime() = DateTime.now().local.format(DateFormat("HH:mm:ss.SSS"))
 
-  suspend fun getSprite(name: String, positionX: IntOrFloat, positionY: IntOrFloat): Image {
+  suspend fun getSprite(name: String, positionX: Float, positionY: Float): Image {
     return stage.image(resourcesVfs[name].readBitmap()) {
       anchor(.5, .5)
       scale(.25)
@@ -42,8 +41,8 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
   data class Character(
     var ded: Boolean = false,
     var sprite: Image,
-    var positionX: IntOrFloat,
-    var positionY: IntOrFloat
+    var positionX: Float,
+    var positionY: Float
   )
 
   data class Player(
@@ -63,7 +62,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
 
   val red = Player(
     character = Character(
-      sprite = getSprite("red.png", 256 + 100, 256 + 100),
+      sprite = getSprite("red.png", (256 + 100).toFloat(), (256 + 100).toFloat()),
       positionX = (256 + 100).toFloat(),
       positionY = (256 + 100).toFloat()
     ),
@@ -72,7 +71,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
 
   val teal = Player(
     character = Character(
-      sprite = getSprite("teal.png", 256 + 100, 256 + 100),
+      sprite = getSprite("teal.png", (256 + 100).toFloat(), (256 + 100).toFloat()),
       positionX = (256 + 100).toFloat(),
       positionY = (256).toFloat()
     ),
