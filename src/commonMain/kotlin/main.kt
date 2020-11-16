@@ -1,26 +1,103 @@
-import com.soywiz.klock.seconds
-import com.soywiz.korge.*
-import com.soywiz.korge.tween.*
-import com.soywiz.korge.view.*
+import com.soywiz.klock.DateFormat
+import com.soywiz.klock.DateTime
+import com.soywiz.korev.Key
+import com.soywiz.korev.KeyEvent
+import com.soywiz.korev.addEventListener
+import com.soywiz.korev.keys
+import com.soywiz.korge.Korge
+import com.soywiz.korge.scene.debugBmpFont
+import com.soywiz.korge.view.addUpdater
+import com.soywiz.korge.view.anchor
+import com.soywiz.korge.view.image
+import com.soywiz.korge.view.position
+import com.soywiz.korge.view.scale
+import com.soywiz.korge.view.text
 import com.soywiz.korim.color.Colors
-import com.soywiz.korim.format.*
-import com.soywiz.korio.file.std.*
-import com.soywiz.korma.geom.degrees
-import com.soywiz.korma.interpolation.Easing
+import com.soywiz.korim.format.readBitmap
+import com.soywiz.korio.file.std.resourcesVfs
 
 suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"]) {
-	val minDegrees = (-16).degrees
-	val maxDegrees = (+16).degrees
+  var line = 0
+  fun textLine(text: String) = text(text, textSize = 16.0, font = debugBmpFont).position(2, line++ * 20 + 5)
+  fun nowTime() = DateTime.now().local.format(DateFormat("HH:mm:ss.SSS"))
 
-	val image = image(resourcesVfs["korge.png"].readBitmap()) {
-		rotation = maxDegrees
-		anchor(.5, .5)
-		scale(.8)
-		position(256, 256)
-	}
+  textLine("Events: ")
+  val positionText = textLine("Position:")
+  val velocityText = textLine("Velocity:")
 
-	while (true) {
-		image.tween(image::rotation[minDegrees], time = 1.seconds, easing = Easing.EASE_IN_OUT)
-		image.tween(image::rotation[maxDegrees], time = 1.seconds, easing = Easing.EASE_IN_OUT)
-	}
+  val image = image(resourcesVfs["korge.png"].readBitmap()) {
+    anchor(.5, .5)
+    scale(.5)
+    position(256, 256)
+  }
+
+  val keyDown = mutableMapOf<Key, Boolean>()
+
+  var dx = 0
+  var dy = 0
+
+  keys {
+    down {
+      if (keyDown[this.key] == true) {
+        return@down
+      }
+      when (this.key) {
+        Key.S -> {
+          dx += 0
+          dy += 1
+        }
+        Key.D -> {
+          dx += 1
+          dy += 0
+        }
+        Key.W -> {
+          dx += 0
+          dy += -1
+        }
+        Key.A -> {
+          dx += -1
+          dy += 0
+        }
+        else -> {
+
+        }
+      }
+
+      keyDown[this.key] = true
+    }
+
+    up {
+      keyDown[this.key] = false
+
+      when (this.key) {
+        Key.W -> {
+          dx -= 0
+          dy -= -1
+        }
+        Key.A -> {
+          dx -= -1
+          dy -= 0
+        }
+        Key.S -> {
+          dx -= 0
+          dy -= 1
+        }
+        Key.D -> {
+          dx -= 1
+          dy -= 0
+        }
+        else -> {
+
+        }
+      }
+    }
+  }
+
+  image.addUpdater {
+    // TODO: normalize velocity
+    this.x += dx
+    this.y += dy
+    positionText.text = "x = $x, y = $y"
+    velocityText.text = "dx = $dx, dy = $dy"
+  }
 }
