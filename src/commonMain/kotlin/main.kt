@@ -19,19 +19,38 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
+
+fun createCharacters() {
+
+}
+
 suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"]) {
   var line = 0
   fun textLine(text: String) = text(text, textSize = 16.0, font = debugBmpFont).position(2, line++ * 20 + 5)
   fun nowTime() = DateTime.now().local.format(DateFormat("HH:mm:ss.SSS"))
 
+  val me = createCharacters()
+
   textLine("Events: ")
   val positionText = textLine("Position:")
   val velocityText = textLine("Velocity:")
 
-  val image = image(resourcesVfs["korge.png"].readBitmap()) {
+  val red = image(resourcesVfs["red.png"].readBitmap()) {
     anchor(.5, .5)
-    scale(.5)
-    position(256, 256)
+    scale(.25)
+    position(256 + 100, 256 + 100)
+  }
+
+  val teal = image(resourcesVfs["teal.png"].readBitmap()) {
+    anchor(.5, .5)
+    scale(.25)
+    position(256 - 100, 256 - 100)
+  }
+
+  val yellow = image(resourcesVfs["yellow.png"].readBitmap()) {
+    anchor(.5, .5)
+    scale(.25)
+    position(256 + 100, 256)
   }
 
   val keyDown = mutableMapOf<Key, Boolean>()
@@ -45,14 +64,6 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
         return@down
       }
       when (this.key) {
-        Key.S -> {
-          dx += 0
-          dy += 1
-        }
-        Key.D -> {
-          dx += 1
-          dy += 0
-        }
         Key.W -> {
           dx += 0
           dy += -1
@@ -61,9 +72,15 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
           dx += -1
           dy += 0
         }
-        else -> {
-
+        Key.S -> {
+          dx += 0
+          dy += 1
         }
+        Key.D -> {
+          dx += 1
+          dy += 0
+        }
+        else -> {}
       }
 
       keyDown[this.key] = true
@@ -89,14 +106,12 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
           dx -= 1
           dy -= 0
         }
-        else -> {
-
-        }
+        else -> {}
       }
     }
   }
 
-  image.addUpdater {
+  red.addUpdater {
     val magnitude = sqrt(dx.toDouble().pow(2) + dy.toDouble().pow(2))
     val angle = atan2(dy.toDouble(), dx.toDouble())
     this.x += magnitude * cos(angle)
