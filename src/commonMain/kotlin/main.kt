@@ -15,19 +15,16 @@ import com.soywiz.korim.color.Colors
 import com.soywiz.korim.format.readBitmap
 import com.soywiz.korio.async.launch
 import com.soywiz.korio.file.std.resourcesVfs
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.*
 
+val KillDistance = 100
 
 suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"]) {
   var line = 0
   fun textLine(text: String) = text(text, textSize = 16.0, font = debugBmpFont).position(2, line++ * 20 + 5)
   fun nowTime() = DateTime.now().local.format(DateFormat("HH:mm:ss.SSS"))
 
-  suspend fun getSprite(name: String, positionX: Float, positionY: Float): Image {
+  suspend fun getSprite(name: String, positionX: Double, positionY: Double): Image {
     return stage.image(resourcesVfs[name].readBitmap()) {
       anchor(.5, .5)
       scale(.25)
@@ -40,9 +37,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
 
   data class Character(
     var ded: Boolean = false,
-    var sprite: Image,
-    var positionX: Float,
-    var positionY: Float
+    var sprite: Image
   )
 
   data class Player(
@@ -51,29 +46,33 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
   ) {
 
     suspend fun kill(target: Player) {
-      target.decease()
+      val x = (this.character.sprite.x - target.character.sprite.x).pow(2)
+      val y = (this.character.sprite.y - target.character.sprite.y).pow(2)
+
+      val distance = sqrt(x + y)
+
+      print(distance)
+      if (distance <= KillDistance) {
+        target.decease()
+      }
     }
 
     suspend fun decease() {
       this.character.ded = true
-      this.character.sprite = getSprite("${this.color}_dead.png", this.character.positionX, this.character.positionY)
+      this.character.sprite = getSprite("${this.color}_dead.png", this.character.sprite.x, this.character.sprite.y)
     }
   }
 
   val red = Player(
     character = Character(
-      sprite = getSprite("red.png", (256 + 100).toFloat(), (256 + 100).toFloat()),
-      positionX = (256 + 100).toFloat(),
-      positionY = (256 + 100).toFloat()
+      sprite = getSprite("red.png", (256 + 100).toDouble(), (256 + 100).toDouble())
     ),
     color = "red"
   )
 
   val teal = Player(
     character = Character(
-      sprite = getSprite("teal.png", (256 + 100).toFloat(), (256 + 100).toFloat()),
-      positionX = (256 + 100).toFloat(),
-      positionY = (256).toFloat()
+      sprite = getSprite("teal.png", (256 + 100).toDouble(), (256 + 100).toDouble())
     ),
     color = "teal"
   )
