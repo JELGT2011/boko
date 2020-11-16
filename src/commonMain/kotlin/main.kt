@@ -4,6 +4,7 @@ import com.soywiz.korev.Key
 import com.soywiz.korev.keys
 import com.soywiz.korge.Korge
 import com.soywiz.korge.scene.debugBmpFont
+import com.soywiz.korge.view.Image
 import com.soywiz.korge.view.addUpdater
 import com.soywiz.korge.view.anchor
 import com.soywiz.korge.view.image
@@ -12,6 +13,7 @@ import com.soywiz.korge.view.scale
 import com.soywiz.korge.view.text
 import com.soywiz.korim.color.Colors
 import com.soywiz.korim.format.readBitmap
+import com.soywiz.korio.async.launch
 import com.soywiz.korio.file.std.resourcesVfs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -19,39 +21,63 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-
-fun createCharacters() {
-
-}
+typealias IntOrFloat = Float
 
 suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"]) {
   var line = 0
   fun textLine(text: String) = text(text, textSize = 16.0, font = debugBmpFont).position(2, line++ * 20 + 5)
   fun nowTime() = DateTime.now().local.format(DateFormat("HH:mm:ss.SSS"))
 
-  val me = createCharacters()
-
+  suspend fun getSprite(name: String, positionX: IntOrFloat, positionY: IntOrFloat): Image {
+    return stage.image(resourcesVfs[name].readBitmap()) {
+      anchor(.5, .5)
+      scale(.25)
+      position(positionX, positionY)
+    }
+  }
   textLine("Events: ")
   val positionText = textLine("Position:")
   val velocityText = textLine("Velocity:")
 
-  val red = image(resourcesVfs["red.png"].readBitmap()) {
-    anchor(.5, .5)
-    scale(.25)
-    position(256 + 100, 256 + 100)
+  data class Character(
+    var ded: Boolean = false,
+    var sprite: Image,
+    var positionX: IntOrFloat,
+    var positionY: IntOrFloat
+  )
+
+  data class Player(
+    val character: Character,
+    val color: String
+  ) {
+
+    suspend fun kill(target: Player) {
+      target.decease()
+    }
+
+    suspend fun decease() {
+      this.character.ded = true
+      this.character.sprite = getSprite("${this.color}_dead.png", this.character.positionX, this.character.positionY)
+    }
   }
 
-  val teal = image(resourcesVfs["teal.png"].readBitmap()) {
-    anchor(.5, .5)
-    scale(.25)
-    position(256 - 100, 256 - 100)
-  }
+  val red = Player(
+    character = Character(
+      sprite = getSprite("red.png", 256 + 100, 256 + 100),
+      positionX = (256 + 100).toFloat(),
+      positionY = (256 + 100).toFloat()
+    ),
+    color = "red"
+  )
 
-  val yellow = image(resourcesVfs["yellow.png"].readBitmap()) {
-    anchor(.5, .5)
-    scale(.25)
-    position(256 + 100, 256)
-  }
+  val teal = Player(
+    character = Character(
+      sprite = getSprite("teal.png", 256 + 100, 256 + 100),
+      positionX = (256 + 100).toFloat(),
+      positionY = (256).toFloat()
+    ),
+    color = "teal"
+  )
 
   val keyDown = mutableMapOf<Key, Boolean>()
 
@@ -79,6 +105,11 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
         Key.D -> {
           dx += 1
           dy += 0
+        }
+        Key.K -> {
+          launch {
+            red.kill(teal)
+          }
         }
         else -> {}
       }
@@ -111,7 +142,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
     }
   }
 
-  red.addUpdater {
+  red.character.sprite.addUpdater {
     val magnitude = sqrt(dx.toDouble().pow(2) + dy.toDouble().pow(2))
     val angle = atan2(dy.toDouble(), dx.toDouble())
     this.x += magnitude * cos(angle)
