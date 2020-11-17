@@ -1,4 +1,5 @@
 import com.soywiz.korge.view.*
+import com.soywiz.korim.color.Colors
 import com.soywiz.korim.format.readBitmap
 import com.soywiz.korio.file.std.resourcesVfs
 import kotlin.math.pow
@@ -17,8 +18,6 @@ suspend fun getSprite(stage: Stage, name: String, x: Double, y: Double): Image {
 
 open class Player(
         var color: String,
-        x: Double,
-        y: Double,
         var ded: Boolean = false,
         var sprite: Image,
         var killCollider: Circle
@@ -27,24 +26,28 @@ open class Player(
     companion object {
         suspend fun create(stage: Stage, color: String, x: Double, y: Double): Player {
             val sprite = stage.coroutineContext.run { getSprite(stage, "$color.png", x, y) }
-            val killCollider = stage.circle(KillDistance.toDouble()) {
+            val killCollider = stage.circle(KillDistance.toDouble(), color = Colors.TRANSPARENT_WHITE) {
                 anchor(.5, .5)
                 position(x, y)
             }
 
             val player = Player(
                     color = color,
-                    x = x,
-                    y = y,
                     sprite = sprite,
                     killCollider = killCollider
-            )
+            ).apply { this.xy(x, y) }
 
-            sprite.addUpdater {
+          stage.addChild(player)
+
+//          TODO: figure out why this doesn't work
+//          player.addChild(sprite)
+//          player.addChild(killCollider)
+
+            player.sprite.addUpdater {
                 this.x = player.x
                 this.y = player.y
             }
-            killCollider.addUpdater {
+            player.killCollider.addUpdater {
                 this.x = player.x
                 this.y = player.y
             }
@@ -53,20 +56,19 @@ open class Player(
         }
     }
 
-    suspend fun kill(target: Player) {
+    suspend fun kill(stage: Stage, target: Player) {
         val x = (this.x - target.x).pow(2)
         val y = (this.y - target.y).pow(2)
 
         val distance = sqrt(x + y)
 
         if (distance <= KillDistance) {
-            target.decease()
+            target.decease(stage)
         }
     }
 
-    suspend fun decease() {
+    suspend fun decease(stage: Stage) {
         this.ded = true
-//        TODO: fix
-//        this.sprite = getSprite("${this.color}_dead.png", this.x, this.y)
+        this.sprite = getSprite(stage, "${this.color}_dead.png", this.x, this.y)
     }
 }

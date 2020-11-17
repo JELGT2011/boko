@@ -1,8 +1,10 @@
 import com.soywiz.klock.DateFormat
 import com.soywiz.klock.DateTime
+import com.soywiz.klock.timesPerSecond
 import com.soywiz.korev.Key
 import com.soywiz.korev.keys
 import com.soywiz.korge.Korge
+import com.soywiz.korge.input.mouse
 import com.soywiz.korge.scene.debugBmpFont
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.Colors
@@ -47,11 +49,17 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
         position(457, 457)
     }
 
-
     val keyDown = mutableMapOf<Key, Boolean>()
 
     var dx = 0
     var dy = 0
+
+//  val player = container {
+//    image(resourcesVfs["red.png"].readBitmap())
+//    onCollision() {
+//
+//    }
+//  }
 
     keys {
         down {
@@ -77,7 +85,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
               }
               Key.K -> {
                 launch {
-                  red.kill(teal)
+                  red.kill(stage, teal)
                 }
               }
                 else -> {
@@ -113,7 +121,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
         }
     }
 
-    red.addUpdater {
+    red.addFixedUpdater(60.timesPerSecond) {
         val magnitude = sqrt(dx.toDouble().pow(2) + dy.toDouble().pow(2))
         val angle = atan2(dy.toDouble(), dx.toDouble())
         this.x += magnitude * cos(angle)
